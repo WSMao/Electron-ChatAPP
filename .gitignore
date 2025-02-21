@@ -1,0 +1,3 @@
+node_modules/
+dist/
+gcp_deploy_log.md

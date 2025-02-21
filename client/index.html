@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello Electron</title>
+    <style>
+      #chat-box {
+        width: 100%;
+        height: 300px;
+        border: 1px solid #ccc;
+        overflow-y: scroll;
+        margin-bottom: 10px;
+      }
+      .sent {
+        background-color: #e1ffc7;
+        text-align: left;
+      }
+      .received {
+        background-color: #f1f1f1;
+        text-align: right;
+      }
+      #message-input {
+        width: calc(100% - 100px);
+      }
+      #send-button {
+        width: 80px;
+      }
+      #connect-button {
+        width: 80px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Hello, Electron!</h1>
+    <p>This is a simple Electron app.</p>
+    <input type="text" id="chat-id-input" placeholder="Enter chat ID" />
+    <button id="connect-button">Connect</button>
+    <div id="chat-box"></div>
+    <input type="text" id="message-input" placeholder="Type your message here..." />
+    <button id="send-button">Send</button>
+
+    <script>
+      const chatBox = document.getElementById('chat-box');
+      const messageInput = document.getElementById('message-input');
+      const sendButton = document.getElementById('send-button');
+      const chatIdInput = document.getElementById('chat-id-input');
+      const connectButton = document.getElementById('connect-button');
+
+      let chatId = '';
+      let ws;
+
+      connectButton.addEventListener('click', () => {
+        const newChatId = chatIdInput.value;
+        if (newChatId.trim() !== '') {
+          if (ws && ws.readyState === WebSocket.OPEN && chatId !== newChatId) {
+            ws.close();
+          }
+          if (!ws || ws.readyState === WebSocket.CLOSED || chatId !== newChatId) {
+            chatId = newChatId;
+            // ws = new WebSocket('ws://localhost:8080');
+            ws = new WebSocket('wss://my-websocket-app-60716291638.us-central1.run.app/');            
+            ws.onopen = () => {
+              ws.send(JSON.stringify({ type: 'register', chatId }));
+            };
+            ws.onmessage = (event) => {
+              const { message } = JSON.parse(event.data);
+              const messageElement = document.createElement('div');
+              messageElement.textContent = message;
+              messageElement.classList.add('received');
+              chatBox.appendChild(messageElement);
+              chatBox.scrollTop = chatBox.scrollHeight;
+            };
+          }
+        }
+      });
+
+      const sendMessage = () => {
+        const message = messageInput.value;
+        if (message.trim() !== '' && chatId.trim() !== '') {
+          ws.send(JSON.stringify({ type: 'message', chatId, message }));
+          const messageElement = document.createElement('div');
+          messageElement.textContent = message;
+          messageElement.classList.add('sent');
+          chatBox.appendChild(messageElement);
+          chatBox.scrollTop = chatBox.scrollHeight;
+          messageInput.value = '';
+        }
+      };
+
+      sendButton.addEventListener('click', sendMessage);
+
+      messageInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          sendMessage();
+        }
+      });
+    </script>
+  </body>
+</html>
