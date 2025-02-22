@@ -178,10 +178,14 @@ gcloud run deploy <cloud_run_service> --image gcr.io/<my-gcp-project-id>/<docker
 
 ### Client 端 (Electron 打包)
 
-兩種打包方式：
+打包方式：
 
 - **electron-packager**：快速打包，適合開發測試
 - **electron-builder**：支援自動更新、簽名，適合正式發布
+- **electron-forge**: 
+  - 簡單易用：與 electron-builder 相比，Electron Forge 更加簡單，通常不需要太多手動配置。
+  - 整合度高：它已經內建了對常見打包格式的支持，像是 .dmg（Mac）和 .exe（Windows）。
+  - 插件支持：Electron Forge 支援許多有用的插件，可以輕鬆地添加更多功能。
 
 #### electron-packager
 
@@ -238,6 +242,45 @@ electron-builder 就會打包你的應用，並且根據你在 build 配置中�
 
 > Note: Windows 下無法為 Mac 平台打包，需直到 Mac 環境下進行打包。
 
+
+#### electron-forge
+
+**安裝**
+
+   ```sh
+   # 安裝 electron-forge
+   npm install --save-dev @electron-forge/cli    
+   # Electron Forge 用來打包 .dmg 格式的插件。
+   npm install --save-dev @electron-forge/maker-dmg
+   # electron-forge import 會根據你的 package.json 自動生成一個 forge.config.js 配置文件，並且設置一些基本的開發環境。
+   npx electron-forge import
+   # 編譯應用
+   npx electron-forge package
+   ```
+
+**增加 electron-forge 配置**
+
+在 `package.json`:
+   
+   ```json
+   "config": {
+      "forge": {
+         "makers": [
+            {
+               "name": "@electron-forge/maker-dmg"
+            }
+         ]
+      }
+   },
+   ```
+
+**打包**
+
+   ```sh
+   npx electron-forge make
+   ```
+
+打包後就會在 out/ 中看到 .app 的 MacOS 執行檔； 也會在 out/make 中看到 .dmg 格式，方便傳遞整包執行檔。
 
 ---
 
